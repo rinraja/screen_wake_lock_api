@@ -1,0 +1,57 @@
+<html>
+    <head>
+        <title>Screen Wake Lock API Example</title>
+    </head>
+    <body>
+       <h1>Screen Wake Lock API Example</h1> 
+       <p id="wakeLockAPI"></p>
+       <button id="acquireLock" onclick="acquireLock()">Acquire Lock</button>
+       <button id="releaseLock" onclick="releaseLock()">Release Lock</button>
+       <script>
+           // create a variable to prevent screen from dimming or locking
+           let wakeLock = null;
+
+           // checking whether the API is available on the browser
+           if('wakeLock' in navigator){
+                document.getElementById("wakeLockAPI").innerText = "Browser supports Wake Lock!";   
+           }
+           else{
+               // set the default as disabled for both locks if api is not compatible with browser
+               document.getElementById("wakeLockAPI").innerText = "Browser does not support Wake Lock!"; 
+               disableButtons(true, true);
+           }
+
+           // if the app has acquired a lock, it wont go into power saver mode
+           async function acquireLock(){
+               // need to acquire a screen wake lock object
+               // we want the promise to be settled which is why await is being used in async function
+               wakeLock = await navigator.wakeLock.request("screen");
+               // if we have gotten the wakeLock then we need to disable it because we got it, but dont disable the releaseLock
+               disableButtons(true, false);
+               // send an alert to specify lock has been acquired
+               alert("Wake Lock has been acquired");
+               
+               // adding event listener because the wakeLock can only remain acquired if the web page is visible on the browser, in other words if user remains in the same tab
+               // if user goes to a different tab, then it needs to be released
+               wakeLock.addEventListener('release', () =>{
+                    disableButtons(false, true);
+                    console.log("Wake Lock has been released");
+               });
+           }
+
+           // if we release the lock this means that the screen can be dimmed
+           function releaseLock(){
+            wakeLock.release().then(() => {
+                disableButtons(false, true);
+                console.log('Wake Lock has been released');
+                alert('Wake Lock has been released');
+            });
+           }
+
+           function disableButtons(acquireLock, releaseLock){
+                document.getElementById("acquireLock").disabled = acquireLock;
+                document.getElementById("releaseLock").disabled = releaseLock;
+           }
+       </script>
+    </body>
+</html>
